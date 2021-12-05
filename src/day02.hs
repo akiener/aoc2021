@@ -28,10 +28,11 @@ parseDir xs = do
                      "down"    -> Down lastSplit
                      "up"      -> Up lastSplit
 
-calculate :: Direction Int -> [Int]
-calculate (Forward a) = [0, a]
-calculate (Up a) = [-a, 0]
-calculate (Down a) = [a, 0]
+-- aim, depth, horPos
+calculate :: [Int] -> Direction Int -> [Int]
+calculate (x:y:z:_) (Forward a) = [x, y + x * a, z + a]
+calculate (x:y:z:_) (Up a) = [x - a, y, z]
+calculate (x:y:z:_) (Down a) = [x + a, y, z]
 
 
 main :: IO ()
@@ -43,10 +44,10 @@ main = do
   let dirs = map parseDir nums
   print dirs
 
-  let evaluated = foldl (\acc dir -> zipWith (+) acc (calculate dir)) [0,0] dirs
-  let depth = head evaluated
-  let horPos = evaluated !! 1
+  let evaluated = foldl calculate [0,0,0] dirs
+  let depth = evaluated !! 1
+  let horPos = evaluated !! 2
   print $ "depth: " ++ show depth
   print $ "horizontal position: " ++ show horPos
-  let part1 = depth * horPos
-  print part1
+  let part2 = depth * horPos
+  print part2
