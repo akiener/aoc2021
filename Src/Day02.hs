@@ -26,7 +26,7 @@ calculate (x:y:z:_) (Down a) = [x + a, y, z]
 main :: IO ()
 main = do
   input <- readFile "input/day02"
-  let nums = splitOn '\n' input
+  let nums = lines input
   print nums
 
   let dirs = map parseDir nums
