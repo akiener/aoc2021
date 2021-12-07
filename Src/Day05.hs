@@ -54,6 +54,16 @@ toLine (Vector (Point x1 y1) (Point x2 y2))
   | y1 == y2 = let lower = min x1 x2
                    upper = max x1 x2
                in [ Point x y1 | x <- [lower..upper] ]
+  | x2 - x1 == y2 - y1 = let lowerX = min x1 x2
+                             upperX = max x1 x2
+                             lowerY = min y1 y2
+                             upperY = max y1 y2
+                         in [ Point x y | x <- [lowerX..upperX], y <- [lowerY..upperY], upperX - x == upperY - y ]
+  | x2 - x1 == y1 - y2 = let lowerX = min x1 x2
+                             upperX = max x1 x2
+                             lowerY = min y1 y2
+                             upperY = max y1 y2
+                         in [ Point x y | x <- [lowerX..upperX], y <- [lowerY..upperY], upperX - x == y - lowerY ]
 
 main :: IO ()
 main = do
@@ -61,30 +71,24 @@ main = do
   let input = lines inputStr
   -- print input
   let inputVectors = map (parsePoint . map (splitOn ",") . splitOn " -> ") input
-  -- print inputVectors
-
+  print inputVectors
 
   let vectorsParallelToCoordinateGrid = filter isParallelToCoordinateGrid inputVectors
-  -- print vectorsParallelToCoordinateGrid
-  -- print $ countOfIntersections vectorsParallelToCoordinateGrid vectorsParallelToCoordinateGrid
+  print vectorsParallelToCoordinateGrid
 
-  -- hack: determine necessary size
-  -- print $ last $ sort $ map parseInt $ concat $ map (concat . map (splitOn ",") . splitOn " -> ") input
-  -- let print2d = mapM_ print
-  -- print2d resultGrid
-  -- print $ take 3 vectorsParallelToCoordinateGrid
-  -- print $ map toLine (take 3 vectorsParallelToCoordinateGrid)
-  -- let resultGrid = addLine vectorsParallelToCoordinateGrid [[0 | y <- [0..20]] | x <- [0..20]]
-  -- let count2OrHigher = length $ concat $ filter (not . null) $ map (filter (>=2)) $ group $ sort (concat resultGrid)
-  -- let part1 = count2OrHigher
+  -- determine necessary size
+  let sideLength = maximum $ map parseInt $ concatMap (concatMap (splitOn ",") . splitOn " -> ") input
+  print $ "sideLength: " ++ show sideLength
 
-  let addPoint :: Point -> [[Int]] -> [[Int]]
-      addPoint p arr = [[addConditionally p arr row col | col <- [0..(length (head arr) - 1)]] | row <- [0..(length arr - 1)]]
-        where addConditionally (Point x y) arr row col = if x == row && y == col then (arr !! row !! col) + 1 else arr !! row !! col
+  let toIndex :: Point -> Int
+      toIndex (Point x y) = x * sideLength + y
 
-  let n = 990
-  print n
-  let resultGrid = foldl (\acc x -> foldl (flip addPoint) acc (toLine x)) [[0 | y <- [0..n]] | x <- [0..n]] vectorsParallelToCoordinateGrid
-  let count2OrHigher = length $ concat $ filter (not . null) $ map (filter (>=2)) $ group $ sort (concat resultGrid)
-  let part1 = count2OrHigher
+  let intersections = group $ sort $ map toIndex $ concatMap toLine vectorsParallelToCoordinateGrid
+  let part1 = length $ filter (\it -> length it > 1) intersections
   putStrLn "part1" >> print part1
+
+  -- let print2d = mapM_ print
+  -- print2d $ map toLine inputVectors
+  let intersections = group $ sort $ map toIndex $ concatMap toLine inputVectors
+  let part2 = length $ filter (\it -> length it > 1) intersections
+  putStrLn "part2" >> print part2
