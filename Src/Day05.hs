@@ -55,17 +55,6 @@ toLine (Vector (Point x1 y1) (Point x2 y2))
                    upper = max x1 x2
                in [ Point x y1 | x <- [lower..upper] ]
 
-addLine :: [Vector] -> [[Int]] -> [[Int]]
-addLine [] arr = arr
-addLine (v:vs) arr = do
-  let line = toLine v
-  let addPoint :: [Point] -> [[Int]] -> [[Int]]
-      addPoint [] arr = arr
-      addPoint (p:ps) arr = addPoint ps [[addConditionally p arr row col | col <- [0..(length (head arr) - 1)]] | row <- [0..(length arr - 1)]]
-        where addConditionally (Point x y) arr row col = if x == row && y == col then (arr !! row !! col) + 1 else arr !! row !! col
-  addLine vs $ addPoint line arr
-  -- addLine vs $ addPoint line arr
-
 main :: IO ()
 main = do
   inputStr <- readFile "input/day05"
@@ -81,11 +70,21 @@ main = do
 
   -- hack: determine necessary size
   -- print $ last $ sort $ map parseInt $ concat $ map (concat . map (splitOn ",") . splitOn " -> ") input
-  let resultGrid = addLine vectorsParallelToCoordinateGrid [[0 | y <- [0..20]] | x <- [0..20]]
   -- let print2d = mapM_ print
   -- print2d resultGrid
   -- print $ take 3 vectorsParallelToCoordinateGrid
   -- print $ map toLine (take 3 vectorsParallelToCoordinateGrid)
+  -- let resultGrid = addLine vectorsParallelToCoordinateGrid [[0 | y <- [0..20]] | x <- [0..20]]
+  -- let count2OrHigher = length $ concat $ filter (not . null) $ map (filter (>=2)) $ group $ sort (concat resultGrid)
+  -- let part1 = count2OrHigher
+
+  let addPoint :: Point -> [[Int]] -> [[Int]]
+      addPoint p arr = [[addConditionally p arr row col | col <- [0..(length (head arr) - 1)]] | row <- [0..(length arr - 1)]]
+        where addConditionally (Point x y) arr row col = if x == row && y == col then (arr !! row !! col) + 1 else arr !! row !! col
+
+  let n = 990
+  print n
+  let resultGrid = foldl (\acc x -> foldl (flip addPoint) acc (toLine x)) [[0 | y <- [0..n]] | x <- [0..n]] vectorsParallelToCoordinateGrid
   let count2OrHigher = length $ concat $ filter (not . null) $ map (filter (>=2)) $ group $ sort (concat resultGrid)
   let part1 = count2OrHigher
   putStrLn "part1" >> print part1
